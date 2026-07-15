@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetryxOS — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090D;
+  --surface:#0D1218;
+  --surface2:#121A24;
+  --surface3:#182230;
+  --border:#1E2836;
+  --border-lt:#283446;
+  --blue:#1E6FEB;
+  --blue-soft:rgba(30,111,235,.13);
+  --blue-glow:rgba(30,111,235,.35);
+  --text:#EDF1F7;
+  --muted:#8C97A8;
+  --dim:#5A6577;
+  --green:#2FBF71;
+  --green-soft:rgba(47,191,113,.12);
+  --amber:#F0A93B;
+  --amber-soft:rgba(240,169,59,.12);
+  --purple:#8B6FF0;
+  --purple-soft:rgba(139,111,240,.12);
+  --red:#E2574C;
+  --red-soft:rgba(226,87,76,.12);
+  --radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.display{font-family:'Russo One',sans-serif;font-weight:400;letter-spacing:.01em}
+.mono{font-family:'DM Mono',monospace}
+
+/* ============ VELOCITY MARK (brand signature) ============ */
+.vmark{display:inline-flex;gap:3px;align-items:flex-end}
+.vmark i{display:block;width:7px;height:16px;background:var(--blue);transform:skewX(-18deg);border-radius:1px}
+.vmark i:nth-child(1){opacity:.28}
+.vmark i:nth-child(2){opacity:.58}
+.vmark i:nth-child(3){opacity:1}
+
+/* slash progress meter — daily actions render as filling slashes */
+.slashmeter{display:flex;gap:5px;align-items:flex-end}
+.slashmeter i{display:block;width:12px;height:22px;background:var(--surface3);transform:skewX(-18deg);border-radius:2px;transition:background .35s, box-shadow .35s}
+.slashmeter i.on{background:var(--blue);box-shadow:0 0 12px var(--blue-glow)}
+.slashmeter.sm i{width:7px;height:13px;gap:3px}
+.slashmeter.sm{gap:3px}
+.slashmeter.sm i.on{box-shadow:none}
+.slashmeter.sm i.on.g{background:var(--green)}
+.slashmeter.sm i.miss{background:var(--surface3)}
+
+/* ============ APP SHELL ============ */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:216px;flex-shrink:0;background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:20px 14px;display:flex;flex-direction:column;gap:4px;
+  position:sticky;top:0;height:100vh;
+}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 8px 20px}
+.logo .wordmark{font-size:17px;line-height:1}
+.logo .wordmark span{color:var(--blue)}
+.navlabel{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;padding:14px 10px 6px}
+.navitem{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
+  color:var(--muted);cursor:pointer;font-weight:500;border:none;background:none;
+  font-family:inherit;font-size:14px;width:100%;text-align:left;
+}
+.navitem:hover{background:var(--surface2);color:var(--text)}
+.navitem.active{background:var(--blue-soft);color:var(--blue)}
+.navitem .ic{width:17px;height:17px;flex-shrink:0}
+.navitem .ic svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sidebar .spacer{flex:1}
+.userchip{display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid var(--border)}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#0E3B85);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.userchip .nm{font-weight:700;font-size:13px;line-height:1.2}
+.userchip .rl{font-size:11px;color:var(--dim)}
+
+.main{flex:1;min-width:0;padding:26px 32px 60px;max-width:1220px}
+
+/* ============ PROTOTYPE VIEW SWITCHER ============ */
+.protobar{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  background:var(--surface);border:1px dashed var(--border-lt);border-radius:var(--radius);
+  padding:9px 14px;margin-bottom:24px;
+}
+.protobar .lbl{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+.toggle{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px}
+.toggle button{
+  border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:700;
+  font-size:12.5px;padding:6px 16px;border-radius:6px;cursor:pointer;transition:all .15s;
+}
+.toggle button.on{background:var(--blue);color:#fff}
+.toggle button:not(.on):hover{color:var(--text)}
+
+/* ============ SHARED BITS ============ */
+.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.pagehead h1{font-size:22px}
+.pagehead .sub{color:var(--muted);font-size:13px;margin-top:5px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.badge{
+  font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.12em;font-weight:500;
+  padding:3px 8px;border-radius:4px;text-transform:uppercase;display:inline-block;
+}
+.badge.eng{background:var(--blue-soft);color:#5E97F2}
+.badge.out{background:var(--green-soft);color:var(--green)}
+.badge.fup{background:var(--amber-soft);color:var(--amber)}
+.badge.con{background:var(--purple-soft);color:var(--purple)}
+.btn{
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:12.5px;border-radius:7px;
+  padding:7px 14px;cursor:pointer;border:1px solid var(--border-lt);background:var(--surface2);
+  color:var(--text);transition:all .15s;
+}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:#3A82F0;color:#fff}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text);border-color:var(--border-lt)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.g{background:var(--green)}.dot.a{background:var(--amber)}.dot.r{background:var(--red)}
+
+.view{display:none}
+.view.on{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+@media (max-width:900px){
+  .sidebar{display:none}
+  .main{padding:18px 16px 60px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar">
+  <div class="logo">
+    <span class="vmark"><i></i><i></i><i></i></span>
+    <span class="wordmark display">METRYX<span>OS</span></span>
+  </div>
+
+  <div class="navlabel" id="navlabel">Rep Workspace</div>
+  <div id="nav-rep">
+    <button class="navitem active"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>Today</button>
+    <button class="navitem"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21V8l7-5 7 5v13"/><path d="M13 21v-6h-4v6M3 21h18"/></svg></span>My Accounts</button>
+    <button class="navitem"><span class="ic"><svg viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span>Sequences</button>
+    <button class="navitem"><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.3-.6L3 21l1.7-5.7A8.4 8.4 0 1 1 21 11.5Z"/></svg></span>Coach</button>
+  </div>
+  <div id="nav-mgr" style="display:none">
+    <button class="navitem active"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="6" width="4" height="15"/><rect x="17" y="9" width="4" height="12"/></svg></span>Dashboard</button>
+    <button class="navitem"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7Z"/><path d="M12 12 3 7M12 12l9-5M12 12v10"/></svg></span>Playbook</button>
+    <button class="navitem"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 21V8l7-5 7 5v13"/><path d="M13 21v-6h-4v6M3 21h18"/></svg></span>Accounts</button>
+    <button class="navitem"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.6"/><path d="M15.5 14.5a5.4 5.4 0 0 1 6 5"/></svg></span>Team</button>
+    <button class="navitem"><span class="ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></span>Reports</button>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="userchip" id="userchip">
+    <div class="avatar" id="uavatar">JW</div>
+    <div><div class="nm" id="uname">Jake Wilson</div><div class="rl" id="urole">Rep · Metryx Demo Co.</div></div>
+  </div>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main class="main">
+
+  <div class="protobar">
+    <span class="lbl">MetryxOS · clickable prototype</span>
+    <div class="toggle">
+      <button id="tg-rep" class="on" onclick="setView('rep')">Rep view</button>
+      <button id="tg-mgr" onclick="setView('mgr')">Manager view</button>
+    </div>
+  </div>
+
+<!-- ==================== REP: TODAY ==================== -->
+<section class="view on" id="view-rep">
+
+  <div class="pagehead">
+    <div>
+      <h1 class="display">Today</h1>
+      <div class="sub">Wednesday, July 15 · 5 accounts in rotation</div>
+    </div>
+    <div class="daily-target card" style="display:flex;align-items:center;gap:16px;padding:12px 18px">
+      <div>
+        <div class="mono" style="font-size:10px;letter-spacing:.13em;color:var(--dim);text-transform:uppercase">Daily target</div>
+        <div style="font-weight:700;font-size:15px;margin-top:2px"><span id="done-count">2</span> of 7 actions</div>
+      </div>
+      <div class="slashmeter" id="daymeter">
+        <i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:20px" id="repgrid">
+
+    <!-- ACTION CARDS -->
+    <div style="display:flex;flex-direction:column;gap:12px" id="cards">
+
+      <div class="card action" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge eng">Engagement</span>
+            <span class="mono" style="font-size:11px;color:var(--dim)">Step 1 of 5</span>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--dim)">~3 min</span>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+          <div class="avatar" style="background:linear-gradient(135deg,#2FBF71,#146A42)">DK</div>
+          <div>
+            <div style="font-weight:700">Dan Kowalski <span style="color:var(--dim);font-weight:400">· Maintenance Director</span></div>
+            <div style="font-size:12.5px;color:var(--muted)">Keystone Stamping · Fort Wayne, IN</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:13.5px;color:var(--muted)">
+          <strong style="color:var(--text)">The angle:</strong> Dan posted yesterday about unplanned downtime on their 400-ton press line. Comment with a reliability take — don't pitch.
+        </div>
+        <div style="margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:7px;padding:11px 14px;font-size:13px;color:var(--text)">
+          "Been on both sides of a press line going down mid-run. The fix that stuck for us wasn't more PMs — it was catching bearing wear 3 weeks earlier. Curious if you're seeing it on the drive end or crank side?"
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn primary" onclick="completeCard(this)">Mark done</button>
+          <button class="btn">Copy draft</button>
+          <button class="btn ghost" onclick="skipCard(this)">Skip</button>
+        </div>
+      </div>
+
+      <div class="card action" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge out">Outreach</span>
+            <span class="mono" style="font-size:11px;color:var(--dim)">Step 3 of 5</span>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--dim)">~2 min</span>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+          <div class="avatar" style="background:linear-gradient(135deg,#F0A93B,#8A5A10)">MR</div>
+          <div>
+            <div style="font-weight:700">Maria Reyes <span style="color:var(--dim);font-weight:400">· VP of Operations</span></div>
+            <div style="font-size:12.5px;color:var(--muted)">Vantage Plastics · Elkhart, IN</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:13.5px;color:var(--muted)">
+          <strong style="color:var(--text)">The angle:</strong> You've engaged twice this week and she liked your comment Monday. Send the connection request now — reference the extrusion scrap thread.
+        </div>
+        <div style="margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:7px;padding:11px 14px;font-size:13px">
+          "Maria — enjoyed the back-and-forth on your scrap rate post. I work with plastics ops teams across Indiana and your take on operator buy-in was the realest thing I read this week. Would be glad to connect."
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn primary" onclick="completeCard(this)">Mark done</button>
+          <button class="btn">Copy draft</button>
+          <button class="btn ghost" onclick="skipCard(this)">Skip</button>
+        </div>
+      </div>
+
+      <div class="card action" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge fup">Follow-up</span>
+            <span class="mono" style="font-size:11px;color:var(--dim)">Step 5 of 5</span>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--dim)">~4 min</span>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+          <div class="avatar" style="background:linear-gradient(135deg,#8B6FF0,#4A3494)">TB</div>
+          <div>
+            <div style="font-weight:700">Tom Brandt <span style="color:var(--dim);font-weight:400">· Plant Manager</span></div>
+            <div style="font-size:12.5px;color:var(--muted)">Harlan Gear &amp; Machine · Auburn, IN</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-size:13.5px;color:var(--muted)">
+          <strong style="color:var(--text)">The angle:</strong> Connected 6 days ago, no reply to your first DM. Signal on file: Harlan is hiring two maintenance techs. Send the value follow-up — share the case study, zero pressure.
+        </div>
+        <div style="margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:7px;padding:11px 14px;font-size:13px">
+          "Tom — no reply needed on the last note. Saw you're adding maintenance techs, and it reminded me of a gear shop in Ohio that cut their reactive work 40% before adding headcount. Wrote up how they did it — want the link?"
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn primary" onclick="completeCard(this)">Mark done</button>
+          <button class="btn">Copy draft</button>
+          <button class="btn ghost" onclick="skipCard(this)">Skip</button>
+        </div>
+      </div>
+
+      <div class="card action" style="padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge con">Content</span>
+            <span class="mono" style="font-size:11px;color:var(--dim)">Weekly post</span>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--dim)">~10 min</span>
+        </div>
+        <div style="margin-top:12px;font-size:13.5px;color:var(--muted)">
+          <strong style="color:var(--text)">The angle:</strong> 3 of your 15 active targets posted about labor shortages this week. Publish your take on training vs. hiring — it puts you in their feed without a DM.
+        </div>
+        <div style="margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:7px;padding:11px 14px;font-size:13px">
+          Draft hook: "Every plant I visit says the same thing: 'We can't find people.' The best ones stopped looking and started building. Here's what that looks like on a real shop floor…"
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn primary" onclick="completeCard(this)">Mark done</button>
+          <button class="btn">Open in Coach</button>
+          <button class="btn ghost" onclick="skipCard(this)">Skip</button>
+        </div>
+      </div>
+
+    </div>
+    <!-- REP RIGHT RAIL -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card" style="padding:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="display" style="font-size:13px">COACH</div>
+          <span class="badge eng">Playbook-aware</span>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--muted);margin-bottom:8px">
+          How do I answer Tom if he says they already have a vibration vendor?
+        </div>
+        <div style="background:var(--blue-soft);border-radius:8px;padding:10px 12px;font-size:12.5px;margin-bottom:12px">
+          Don't compete with the vendor — ask what changed since they installed it. Per your playbook, lead with the <strong>Ohio gear shop proof point</strong> and position around coverage gaps, not replacement.
+        </div>
+        <div style="display:flex;gap:6px">
+          <input placeholder="Ask your coach…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;color:var(--text);font-family:inherit;font-size:12.5px;outline:none">
+          <button class="btn primary" style="padding:8px 12px">→</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:16px">
+        <div class="display" style="font-size:13px;margin-bottom:10px">SIGNALS</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px">
+          <div style="display:flex;gap:9px"><span class="dot a" style="margin-top:5px"></span><div><strong>Harlan Gear &amp; Machine</strong> is hiring 2 maintenance techs <div style="color:var(--dim);font-size:11px">Logged by you · 2d ago</div></div></div>
+          <div style="display:flex;gap:9px"><span class="dot g" style="margin-top:5px"></span><div><strong>Blue River Castings</strong> announced a $4M line expansion <div style="color:var(--dim);font-size:11px">News feed · 3d ago</div></div></div>
+          <div style="display:flex;gap:9px"><span class="dot a" style="margin-top:5px"></span><div><strong>Midwest Extrusion</strong> new Ops VP started this month <div style="color:var(--dim);font-size:11px">Logged by you · 5d ago</div></div></div>
+        </div>
+        <button class="btn" style="width:100%;margin-top:12px">+ Log a signal</button>
+      </div>
+
+      <div class="card" style="padding:16px">
+        <div class="display" style="font-size:13px;margin-bottom:10px">THIS WEEK</div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px"><span>Actions completed</span><strong style="color:var(--text)">14 / 21</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px"><span>Replies</span><strong style="color:var(--green)">4</strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)"><span>Meetings booked</span><strong style="color:var(--green)">1</strong></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MANAGER: DASHBOARD ==================== -->
+<section class="view" id="view-mgr">
+
+  <div class="pagehead">
+    <div>
+      <h1 class="display">Team Dashboard</h1>
+      <div class="sub">Industrial East Team · 6 reps · Trailing 30 days</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn">Trailing 90</button>
+      <button class="btn primary">Export ROI report</button>
+    </div>
+  </div>
+
+  <!-- STAT ROW -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px" id="statrow">
+    <div class="card" style="padding:16px 18px">
+      <div class="mono" style="font-size:10px;letter-spacing:.13em;color:var(--dim);text-transform:uppercase">Actions completed</div>
+      <div class="display" style="font-size:26px;margin-top:6px">412<span style="font-size:13px;color:var(--dim)"> / 486</span></div>
+      <div style="font-size:12px;color:var(--green);margin-top:4px">85% of plan · ↑ 6% vs last month</div>
+    </div>
+    <div class="card" style="padding:16px 18px">
+      <div class="mono" style="font-size:10px;letter-spacing:.13em;color:var(--dim);text-transform:uppercase">Replies</div>
+      <div class="display" style="font-size:26px;margin-top:6px">67</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">16% reply rate on outreach</div>
+    </div>
+    <div class="card" style="padding:16px 18px;border-color:var(--blue);box-shadow:0 0 0 1px var(--blue-soft), 0 0 24px rgba(30,111,235,.08)">
+      <div class="mono" style="font-size:10px;letter-spacing:.13em;color:var(--blue);text-transform:uppercase">Meetings booked</div>
+      <div class="display" style="font-size:26px;margin-top:6px;color:var(--blue)">19</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">$310K est. pipeline attributed</div>
+    </div>
+    <div class="card" style="padding:16px 18px">
+      <div class="mono" style="font-size:10px;letter-spacing:.13em;color:var(--dim);text-transform:uppercase">Stale accounts</div>
+      <div class="display" style="font-size:26px;margin-top:6px;color:var(--amber)">4</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">No touch in 14+ days</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:20px" id="mgrgrid">
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+      <!-- REP TABLE -->
+      <div class="card" style="padding:6px 0 2px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px 10px">
+          <div class="display" style="font-size:13px">REP CONSISTENCY</div>
+          <span class="mono" style="font-size:11px;color:var(--dim)">last 7 days</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="color:var(--dim);text-align:left">
+              <th style="padding:8px 18px;font-weight:500;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase">Rep</th>
+              <th style="padding:8px 12px;font-weight:500;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase">Daily streak</th>
+              <th style="padding:8px 12px;font-weight:500;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase">Actions</th>
+              <th style="padding:8px 12px;font-weight:500;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase">Replies</th>
+              <th style="padding:8px 12px;font-weight:500;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase">Mtgs</th>
+              <th style="padding:8px 18px;font-weight:500;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase">Status</th>
+            </tr>
+          </thead>
+          <tbody id="reptable"></tbody>
+        </table>
+      </div>
+
+      <!-- OUTCOMES CHART -->
+      <div class="card" style="padding:16px 18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="display" style="font-size:13px">MEETINGS BOOKED BY WEEK</div>
+          <span class="mono" style="font-size:11px;color:var(--dim)">12 weeks</span>
+        </div>
+        <div id="barchart" style="display:flex;align-items:flex-end;gap:7px;height:110px"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px" class="mono">
+          <span style="font-size:10px;color:var(--dim)">APR 20</span>
+          <span style="font-size:10px;color:var(--dim)">MAY 18</span>
+          <span style="font-size:10px;color:var(--dim)">JUN 15</span>
+          <span style="font-size:10px;color:var(--blue)">JUL 13</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MANAGER RIGHT RAIL -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card" style="padding:16px;border-color:rgba(240,169,59,.35)">
+        <div class="display" style="font-size:13px;margin-bottom:10px;color:var(--amber)">NEEDS ATTENTION</div>
+        <div style="display:flex;flex-direction:column;gap:11px;font-size:12.5px">
+          <div style="display:flex;gap:9px"><span class="dot r" style="margin-top:5px"></span><div><strong>Tyler Nash</strong> — no activity in 5 days<div style="color:var(--dim);font-size:11px">Last action Jul 10</div></div></div>
+          <div style="display:flex;gap:9px"><span class="dot a" style="margin-top:5px"></span><div><strong>Blue River Castings</strong> stale 16 days — expansion signal active<div style="color:var(--dim);font-size:11px">Assigned to Sam O.</div></div></div>
+          <div style="display:flex;gap:9px"><span class="dot a" style="margin-top:5px"></span><div><strong>Cold Executive sequence</strong> reply rate dropped to 9%<div style="color:var(--dim);font-size:11px">Consider revising step 3 draft</div></div></div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:16px">
+        <div class="display" style="font-size:13px;margin-bottom:10px">ACCOUNT COVERAGE</div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:8px"><span>Target accounts</span><strong style="color:var(--text)">30</strong></div>
+        <div style="height:8px;border-radius:4px;background:var(--surface3);overflow:hidden;display:flex">
+          <span style="width:70%;background:var(--blue)"></span>
+          <span style="width:17%;background:var(--amber)"></span>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:9px;font-size:11.5px;color:var(--muted)">
+          <span><span class="dot" style="background:var(--blue)"></span> 21 active</span>
+          <span><span class="dot a"></span> 5 slowing</span>
+          <span><span class="dot" style="background:var(--surface3)"></span> 4 stale</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:16px">
+        <div class="display" style="font-size:13px;margin-bottom:10px">PIPELINE ATTRIBUTED</div>
+        <div class="display" style="font-size:24px;color:var(--green)">$310K</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">19 meetings · 7 opportunities created from LinkedIn motion this quarter</div>
+        <button class="btn" style="width:100%;margin-top:12px">View by account →</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+<script>
+/* ---------- view switching ---------- */
+function setView(v){
+  const rep = v==='rep';
+  document.getElementById('view-rep').classList.toggle('on', rep);
+  document.getElementById('view-mgr').classList.toggle('on', !rep);
+  document.getElementById('tg-rep').classList.toggle('on', rep);
+  document.getElementById('tg-mgr').classList.toggle('on', !rep);
+  document.getElementById('nav-rep').style.display = rep? 'block':'none';
+  document.getElementById('nav-mgr').style.display = rep? 'none':'block';
+  document.getElementById('navlabel').textContent = rep? 'Rep Workspace':'Manager Cockpit';
+  document.getElementById('uavatar').textContent = rep? 'JW':'AM';
+  document.getElementById('uname').textContent = rep? 'Jake Wilson':'Alex Moran';
+  document.getElementById('urole').textContent = rep? 'Rep · Metryx Demo Co.':'VP of Sales · Metryx Demo Co.';
+}
+
+/* ---------- rep action cards ---------- */
+let done = 2;
+function updateMeter(){
+  document.getElementById('done-count').textContent = done;
+  const slashes = document.querySelectorAll('#daymeter i');
+  slashes.forEach((s,i)=> s.classList.toggle('on', i < done));
+}
+function completeCard(btn){
+  const card = btn.closest('.action');
+  card.style.transition = 'all .35s ease';
+  card.style.opacity = '.45';
+  card.style.borderColor = 'var(--green)';
+  card.querySelectorAll('.btn').forEach(b=>b.remove());
+  const tag = document.createElement('div');
+  tag.innerHTML = '<span style="color:var(--green);font-weight:700;font-size:13px">✓ Done — logged to sequence</span>';
+  tag.style.marginTop = '12px';
+  card.appendChild(tag);
+  done = Math.min(done+1, 7);
+  updateMeter();
+}
+function skipCard(btn){
+  const card = btn.closest('.action');
+  card.style.transition = 'all .3s ease';
+  card.style.opacity = '.35';
+  card.querySelectorAll('.btn').forEach(b=>b.remove());
+  const tag = document.createElement('div');
+  tag.innerHTML = '<span style="color:var(--dim);font-weight:500;font-size:13px">Skipped — coach will reschedule and ask why at end of day</span>';
+  tag.style.marginTop = '12px';
+  card.appendChild(tag);
+}
+
+/* ---------- manager rep table ---------- */
+const reps = [
+  {nm:'Jake Wilson',   ini:'JW', days:[1,1,1,1,1,1,1], acts:'21/21', rep:6, mtg:4, st:'g', stl:'On track'},
+  {nm:'Sam Ortiz',     ini:'SO', days:[1,1,0,1,1,1,0], acts:'17/21', rep:4, mtg:3, st:'g', stl:'On track'},
+  {nm:'Priya Nair',    ini:'PN', days:[1,1,1,0,1,1,1], acts:'19/21', rep:5, mtg:5, st:'g', stl:'On track'},
+  {nm:'Marcus Bell',   ini:'MB', days:[1,0,1,1,0,1,1], acts:'15/21', rep:3, mtg:2, st:'a', stl:'Slipping'},
+  {nm:'Dana Fisk',     ini:'DF', days:[0,1,1,0,1,0,1], acts:'12/21', rep:2, mtg:1, st:'a', stl:'Slipping'},
+  {nm:'Tyler Nash',    ini:'TN', days:[1,1,0,0,0,0,0], acts:'5/21',  rep:1, mtg:0, st:'r', stl:'Inactive 5d'},
+];
+const tbody = document.getElementById('reptable');
+reps.forEach((r,idx)=>{
+  const slashes = r.days.map(d=>'<i class="'+(d?'on g':'miss')+'"></i>').join('');
+  const stColor = r.st==='g'?'var(--green)': r.st==='a'?'var(--amber)':'var(--red)';
+  const row = document.createElement('tr');
+  row.style.borderTop = '1px solid var(--border)';
+  row.innerHTML =
+    '<td style="padding:11px 18px"><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:26px;height:26px;font-size:10px">'+r.ini+'</div><strong>'+r.nm+'</strong></div></td>'+
+    '<td style="padding:11px 12px"><span class="slashmeter sm">'+slashes+'</span></td>'+
+    '<td style="padding:11px 12px" class="mono">'+r.acts+'</td>'+
+    '<td style="padding:11px 12px" class="mono">'+r.rep+'</td>'+
+    '<td style="padding:11px 12px;color:var(--blue);font-weight:700" class="mono">'+r.mtg+'</td>'+
+    '<td style="padding:11px 18px"><span style="display:inline-flex;align-items:center;gap:7px;color:'+stColor+';font-weight:700;font-size:12px"><span class="dot" style="background:'+stColor+'"></span>'+r.stl+'</span></td>';
+  tbody.appendChild(row);
+});
+
+/* ---------- meetings bar chart ---------- */
+const weeks = [1,2,1,2,3,2,4,3,5,4,6,5];
+const chart = document.getElementById('barchart');
+const max = Math.max(...weeks);
+weeks.forEach((v,i)=>{
+  const bar = document.createElement('div');
+  bar.style.cssText = 'flex:1;border-radius:4px 4px 0 0;transform:skewX(-6deg);transition:height .4s;'+
+    'height:'+Math.round(v/max*100)+'%;'+
+    'background:'+(i===weeks.length-1?'var(--blue)':'rgba(30,111,235,'+(0.25+0.5*(i/weeks.length))+')');
+  bar.title = v+' meetings';
+  chart.appendChild(bar);
+});
+
+/* ---------- responsive grids ---------- */
+function fitGrids(){
+  const narrow = window.innerWidth < 980;
+  document.getElementById('repgrid').style.gridTemplateColumns = narrow? '1fr' : '1fr 320px';
+  document.getElementById('mgrgrid').style.gridTemplateColumns = narrow? '1fr' : '1fr 320px';
+  document.getElementById('statrow').style.gridTemplateColumns = narrow? 'repeat(2,1fr)' : 'repeat(4,1fr)';
+}
+window.addEventListener('resize', fitGrids); fitGrids();
+</script>
+</body>
+</html>
