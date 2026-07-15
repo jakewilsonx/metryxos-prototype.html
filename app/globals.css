@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #07090d;
+  --surface: #0d1218;
+  --surface2: #121a24;
+  --surface3: #182230;
+  --border: #1e2836;
+  --border-lt: #283446;
+  --blue: #1e6feb;
+  --blue-soft: rgba(30, 111, 235, 0.13);
+  --blue-glow: rgba(30, 111, 235, 0.35);
+  --text: #edf1f7;
+  --muted: #8c97a8;
+  --dim: #5a6577;
+  --green: #2fbf71;
+  --green-soft: rgba(47, 191, 113, 0.12);
+  --amber: #f0a93b;
+  --amber-soft: rgba(240, 169, 59, 0.12);
+  --purple: #8b6ff0;
+  --purple-soft: rgba(139, 111, 240, 0.12);
+  --red: #e2574c;
+  --red-soft: rgba(226, 87, 76, 0.12);
+  --radius: 10px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
+  --color-surface3: var(--surface3);
+  --color-border: var(--border);
+  --color-border-lt: var(--border-lt);
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+  --color-blue-glow: var(--blue-glow);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-dim: var(--dim);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-purple: var(--purple);
+  --color-purple-soft: var(--purple-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --radius-md: var(--radius);
+
+  --font-display: "Russo One", sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ============ VELOCITY MARK (brand signature) ============ */
+.vmark {
+  display: inline-flex;
+  gap: 3px;
+  align-items: flex-end;
+}
+.vmark i {
+  display: block;
+  width: 7px;
+  height: 16px;
+  background: var(--blue);
+  transform: skewX(-18deg);
+  border-radius: 1px;
+}
+.vmark i:nth-child(1) {
+  opacity: 0.28;
+}
+.vmark i:nth-child(2) {
+  opacity: 0.58;
+}
+.vmark i:nth-child(3) {
+  opacity: 1;
+}
+
+/* ============ SLASH METER — signature progress mechanic ============ */
+.slashmeter {
+  display: flex;
+  gap: 5px;
+  align-items: flex-end;
+}
+.slashmeter i {
+  display: block;
+  width: 12px;
+  height: 22px;
+  background: var(--surface3);
+  transform: skewX(-18deg);
+  border-radius: 2px;
+  transition:
+    background 0.35s,
+    box-shadow 0.35s;
+}
+.slashmeter i.on {
+  background: var(--blue);
+  box-shadow: 0 0 12px var(--blue-glow);
+}
+.slashmeter.sm {
+  gap: 3px;
+}
+.slashmeter.sm i {
+  width: 7px;
+  height: 13px;
+  gap: 3px;
+}
+.slashmeter.sm i.on {
+  box-shadow: none;
+}
+.slashmeter.sm i.on.g {
+  background: var(--green);
+}
+.slashmeter.sm i.miss {
+  background: var(--surface3);
+}
+
+/* ============ SHARED BITS ============ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  display: inline-block;
+}
+.badge.eng {
+  background: var(--blue-soft);
+  color: #5e97f2;
+}
+.badge.out {
+  background: var(--green-soft);
+  color: var(--green);
+}
+.badge.fup {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+.badge.con {
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+
+.btn {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 12.5px;
+  border-radius: 7px;
+  padding: 7px 14px;
+  cursor: pointer;
+  border: 1px solid var(--border-lt);
+  background: var(--surface2);
+  color: var(--text);
+  transition: all 0.15s;
+}
+.btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn.primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.btn.primary:hover {
+  background: #3a82f0;
+  color: #fff;
+}
+.btn.ghost {
+  background: none;
+  border-color: transparent;
+  color: var(--muted);
+}
+.btn.ghost:hover {
+  color: var(--text);
+  border-color: var(--border-lt);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.dot.g {
+  background: var(--green);
+}
+.dot.a {
+  background: var(--amber);
+}
+.dot.r {
+  background: var(--red);
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--blue-soft);
+}
