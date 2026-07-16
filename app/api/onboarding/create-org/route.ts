@@ -50,5 +50,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: profileError.message }, { status: 500 });
   }
 
+  // Blank playbook so /playbook always has a row to edit, regardless of
+  // whether this org came from the seed script or a real signup.
+  await admin.from("playbooks").insert({
+    org_id: org.id,
+    icp: { industries: [], company_size: "", personas: [] },
+    pillars: [],
+    cadence_rules: { daily_actions_target: 5, min_days_between_touches: 2, max_touches_per_contact_per_week: 3 },
+    tone_rules: "",
+  });
+
   return NextResponse.json({ ok: true, orgId: org.id });
 }

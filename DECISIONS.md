@@ -61,3 +61,46 @@ Choices made where the spec left something open, in build order.
   production build, and lint — not by an end-to-end run against a real
   auth flow. Connect a real Supabase project (see README) to verify
   live.
+- **`scripts/get-login-link.ts`**: added during live verification with the
+  user's own Supabase project, since the free tier's shared SMTP hit its
+  rate limit almost immediately. It uses `admin.generateLink()` to produce
+  a sign-in link without sending an email. This surfaced a real bug worth
+  noting: `@supabase/ssr`'s browser client hard-codes `flowType: "pkce"`
+  and its automatic URL-detection throws away any hash-fragment-style
+  token (`#access_token=...`) instead of a `"?code="` — which is exactly
+  the shape `admin.generateLink()` produces, since PKCE requires a
+  code_challenge only a browser-initiated `signInWithOtp` call can supply.
+  `app/auth/callback/page.tsx` now parses the callback URL explicitly
+  (hash tokens via `setSession()`, `?code=` via `exchangeCodeForSession()`)
+  instead of relying on that auto-detection, so both a real magic-link
+  email and this dev-only script work.
+
+## Phase 2
+
+- **Blank playbook created at org bootstrap**: `/api/onboarding/create-org`
+  now inserts an empty `playbooks` row alongside the org/profile, so the
+  Playbook page always has something to edit (rather than special-casing
+  a "no playbook yet" state in the UI). The seed script already did this
+  for the demo org; this makes it true for real signups too.
+- **Account/contact writes go straight through the browser Supabase
+  client** (not API routes) for simple field updates — status/stage
+  changes, owner assignment, signal logging, playbook/sequence-template
+  edits. RLS already enforces who can write what (see Phase 1 policies),
+  so there's no server-side logic these need beyond what Postgres already
+  checks. CSV import is the one exception: it needs multi-row
+  account/contact matching-and-creation in one pass, which is easier to
+  get right as a single server-side route than as sequential client-side
+  calls.
+- **CSV import account matching**: rows are grouped by `account_name`,
+  case-insensitively, against both existing accounts in the org and
+  other rows in the same file — so a CSV with multiple contacts under the
+  same account name creates one account with several contacts, and
+  re-importing a CSV that includes already-existing accounts adds
+  contacts to those instead of duplicating the account.
+- **Pipeline status coloring**: the prototype doesn't show a status badge
+  for accounts/contacts (`pipeline_status` has 7 values; the prototype
+  only shows action-type badges and rep on-track/slipping/inactive dots).
+  Built a `StatusDot` component reusing the prototype's dot-plus-label
+  pattern from the manager dashboard's rep table, with a reasonable color
+  per status (targeting/closed dim, engaging blue, in_conversation
+  purple, meeting_booked/opportunity green, parked amber).
