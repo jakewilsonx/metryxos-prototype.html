@@ -104,3 +104,41 @@ Choices made where the spec left something open, in build order.
   pattern from the manager dashboard's rep table, with a reasonable color
   per status (targeting/closed dim, engaging blue, in_conversation
   purple, meeting_booked/opportunity green, parked amber).
+
+## Phase 3
+
+- **Candidate selection happens in code, not in the Claude prompt.**
+  Which contacts are due for a touch today (cadence spacing, weekly
+  touch cap, next sequence step) is computed server-side before ever
+  calling Claude; Claude only writes the `angle`/`draft` copy for a
+  fixed, pre-selected candidate list, keyed by array index rather than
+  by contact_id. This keeps the daily-target and spacing rules exact
+  (no reliance on the model counting correctly) and removes any chance
+  of the model hallucinating a wrong contact/account pairing.
+- **Contacts with no active sequence still get a card** (a generic
+  "engage, don't pitch" engagement touch), so newly-imported contacts
+  (Phase 2 CSV import) are immediately workable instead of sitting idle
+  until a manager manually assigns a sequence — sequence assignment UI
+  wasn't in scope for this phase.
+- **One "weekly post" (content-type) slot** is added roughly every 6
+  days per rep, referencing recent signals across all their accounts
+  rather than one contact — matches the prototype's 4th card type.
+- **"Generate my day" is a one-shot per calendar day**: the API route
+  rejects (409) if the rep already has any cards for today, rather than
+  supporting incremental top-ups. Simpler and matches the accept
+  criteria ("rep clicks Generate my day, gets cards"); revisit if
+  managers need to regenerate mid-day.
+- **Sequence step display on Today's cards** (`Step X of Y`) is derived
+  from the sequence's current `current_step` at render time rather than
+  stored on the action_card row itself (not in the spec's schema) — for
+  a done card this reads as `current_step` (already advanced by the
+  complete action), for a pending one as `current_step + 1`. This is
+  correct for the common case (one card per sequence per day) but could
+  drift if a sequence is advanced by something other than that day's
+  card.
+- **`/api/action-cards/complete`** is a dedicated route (rather than a
+  direct client-side Supabase update like the other Phase 2 write
+  actions) because completing a card is three related writes — the
+  card itself, the contact's `last_touch_at`, and the sequence's
+  `current_step`/`status` — and doing that server-side in one place is
+  more reliable than three sequential client calls.

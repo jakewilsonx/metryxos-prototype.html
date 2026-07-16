@@ -7,26 +7,8 @@ import { StatusDot } from "@/components/ui/StatusDot";
 import { StatusSelect } from "@/components/accounts/StatusSelect";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { ACTION_BADGE_CLASS, ACTION_LABEL, OUTCOME_LABEL } from "@/lib/actionTypes";
 import type { ActionCard, Outcome, SequenceStep } from "@/lib/database.types";
-
-const ACTION_BADGE: Record<string, string> = {
-  engagement: "badge eng",
-  outreach: "badge out",
-  follow_up: "badge fup",
-  content: "badge con",
-};
-const ACTION_LABEL: Record<string, string> = {
-  engagement: "Engagement",
-  outreach: "Outreach",
-  follow_up: "Follow-up",
-  content: "Content",
-};
-const OUTCOME_LABEL: Record<string, string> = {
-  replied: "Replied",
-  meeting_booked: "Meeting booked",
-  opportunity_created: "Opportunity created",
-  not_interested: "Not interested",
-};
 
 type TimelineEntry =
   | { kind: "action_card"; at: string; data: ActionCard }
@@ -124,7 +106,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
                 <div className="mb-1 flex items-center gap-2">
                   {entry.kind === "action_card" ? (
                     <>
-                      <span className={ACTION_BADGE[entry.data.type]}>{ACTION_LABEL[entry.data.type]}</span>
+                      <span className={ACTION_BADGE_CLASS[entry.data.type]}>{ACTION_LABEL[entry.data.type]}</span>
                       <span className="mono text-[11px] text-dim">
                         {entry.data.status === "done" ? "Done" : entry.data.status === "skipped" ? `Skipped${entry.data.skip_reason ? ` · ${entry.data.skip_reason}` : ""}` : "Pending"}
                       </span>
