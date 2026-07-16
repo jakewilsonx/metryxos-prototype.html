@@ -5,8 +5,13 @@
  * (or the process environment) and the migrations in supabase/migrations
  * already applied.
  */
-import "dotenv/config";
+import { config } from "dotenv";
 import { createClient } from "@supabase/supabase-js";
+
+// Next.js convention is `.env.local`, not dotenv's default `.env` — load
+// both explicitly so this script sees the same vars `next dev` does.
+config({ path: ".env.local" });
+config();
 import type { Database } from "../lib/database.types";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
