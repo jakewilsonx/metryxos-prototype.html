@@ -1,10 +1,11 @@
 /**
- * Prints a one-time sign-in link for a given email without sending an
+ * Opens a one-time sign-in link for a given email without sending an
  * actual email (bypasses Supabase's SMTP rate limit — useful for local
  * dev/testing when you don't want to wait on real email delivery).
  * Run with: npx tsx scripts/get-login-link.ts <email>
  */
 import { config } from "dotenv";
+import { exec } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../lib/database.types";
 
@@ -28,6 +29,17 @@ const admin = createClient<Database>(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
+function openInBrowser(target: string) {
+  const command = process.platform === "darwin" ? `open "${target}"` : process.platform === "win32" ? `start "" "${target}"` : `xdg-open "${target}"`;
+  exec(command, (err) => {
+    if (err) {
+      console.log("\nCouldn't open a browser automatically — open this URL manually (right away, it's single-use):\n");
+      console.log(target);
+      console.log("");
+    }
+  });
+}
+
 async function main() {
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
@@ -40,9 +52,8 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("\nOpen this URL in your browser to sign in:\n");
-  console.log(data.properties.action_link);
-  console.log("");
+  console.log(`\nOpening a browser to sign in as ${email}...\n`);
+  openInBrowser(data.properties.action_link);
 }
 
 main();
